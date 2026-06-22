@@ -7,6 +7,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<!-- Supabase SDK -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.tailwindcss.com"></script>
 <script>
 tailwind.config = { theme: { extend: {
@@ -14,441 +16,97 @@ tailwind.config = { theme: { extend: {
   colors: { ink:'#0a0a0f', panel:'#111118', line:'#1f1f2b', muted:'#8b8ba7', accent:'#7c5cff', accent2:'#22d3ee' }
 }}}
 </script>
-<style id="page-style">
+<style>
   html { scroll-behavior: smooth; }
   body { color:#e6e6f0; position:relative; min-height:100vh; }
-  body::before {
-    content:""; position:fixed; inset:0; z-index:-2;
-    background-image: url("https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=2000&q=80");
-    background-size:cover; background-position:center; background-attachment:fixed;
-    filter: blur(2px) brightness(0.35) saturate(1.1);
-    opacity: 0.55;
-  }
-  body::after {
-    content:""; position:fixed; inset:0; z-index:-1;
-    background:
-      radial-gradient(1200px 600px at 80% -10%, rgba(124,92,255,.28), transparent 60%),
-      radial-gradient(900px 500px at -10% 30%, rgba(34,211,238,.18), transparent 60%),
-      linear-gradient(180deg, rgba(10,10,15,.55), rgba(10,10,15,.85));
-  }
-  .grid-bg {
-    background-image:
-      linear-gradient(rgba(255,255,255,.04) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(255,255,255,.04) 1px, transparent 1px);
-    background-size: 44px 44px;
-    mask-image: radial-gradient(ellipse at top, black 40%, transparent 75%);
-  }
+  body::before { content:""; position:fixed; inset:0; z-index:-2; background-image: url("https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=2000&q=80"); background-size:cover; background-position:center; background-attachment:fixed; filter: blur(2px) brightness(0.35) saturate(1.1); opacity: 0.55; }
+  body::after { content:""; position:fixed; inset:0; z-index:-1; background: radial-gradient(1200px 600px at 80% -10%, rgba(124,92,255,.28), transparent 60%), radial-gradient(900px 500px at -10% 30%, rgba(34,211,238,.18), transparent 60%), linear-gradient(180deg, rgba(10,10,15,.55), rgba(10,10,15,.85)); }
+  .grid-bg { background-image: linear-gradient(rgba(255,255,255,.04) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.04) 1px, transparent 1px); background-size: 44px 44px; mask-image: radial-gradient(ellipse at top, black 40%, transparent 75%); }
   .glass { background: linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.01)); border: 1px solid rgba(255,255,255,.06); backdrop-filter: blur(10px); }
-  .chip { border: 1px solid rgba(255,255,255,.08); background: rgba(255,255,255,.03); }
   .gradient-text { background: linear-gradient(90deg,#fff 0%, #c9c2ff 50%, #88e6ff 100%); -webkit-background-clip:text; background-clip:text; color: transparent; }
-  .accent-text { color:#a48bff; }
-  .link-underline { background-image: linear-gradient(currentColor,currentColor); background-size:0% 1px; background-repeat:no-repeat; background-position:0 100%; transition: background-size .3s ease, color .25s, transform .25s; display:inline-block; }
-  .link-underline:hover { background-size:100% 1px; transform: translateY(-2px); }
-  .card-hover { transition: transform .5s cubic-bezier(.2,.8,.2,1), border-color .35s, box-shadow .5s; transform-style: preserve-3d; will-change: transform; }
-  .card-hover:hover { transform: translateY(-6px) rotateX(4deg) rotateY(-4deg) scale(1.02); border-color: rgba(124,92,255,.55); box-shadow: 0 30px 60px -20px rgba(124,92,255,.35), 0 0 0 1px rgba(124,92,255,.25); }
-  section { perspective: 1200px; }
-  .reveal { opacity:0; transform: translateY(40px) rotateX(-8deg) scale(.97); transition: opacity .9s ease, transform .9s cubic-bezier(.2,.8,.2,1); transform-origin: center top; }
-  .reveal.in { opacity:1; transform: translateY(0) rotateX(0) scale(1); }
-
-  /* Touch tweaks */
-  @media (hover: none), (pointer: coarse) {
-    .card-hover { transform: none !important; }
-    .card-hover:hover { transform: translateY(-4px) !important; box-shadow: 0 10px 30px -10px rgba(0,0,0,.5) !important; }
-  }
+  .card-hover { transition: transform .5s cubic-bezier(.2,.8,.2,1); }
+  .card-hover:hover { transform: translateY(-6px) rotateX(4deg) rotateY(-4deg) scale(1.02); }
 </style>
 </head>
 <body class="font-sans antialiased selection:bg-accent/40 selection:text-white">
 
-<!-- NAV -->
 <header class="sticky top-0 z-50 backdrop-blur-md bg-ink/70 border-b border-line/60">
   <nav class="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
     <a href="#top" class="flex items-center gap-2 font-semibold">
       <span id="brandAvatar" class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-gradient-to-br from-accent to-accent2 text-ink font-bold overflow-hidden">S</span>
       <span id="brandName">Santosha Dabadi Aiyyanna</span>
     </a>
-    <ul class="hidden md:flex items-center gap-6 lg:gap-7 text-sm text-muted">
-      <li><a href="#about"        class="hover:text-white link-underline">About</a></li>
-      <li><a href="#education"    class="hover:text-white link-underline">Education</a></li>
-      <li><a href="#work"         class="hover:text-white link-underline">Work</a></li>
-      <li><a href="#projects"     class="hover:text-white link-underline">Projects</a></li>
-      <li><a href="#certificates" class="hover:text-white link-underline">Certificates</a></li>
-      <li><a href="#skills"       class="hover:text-white link-underline">Skills</a></li>
-      <li><a href="#hobbies"      class="hover:text-white link-underline">Hobbies</a></li>
-      <li><a href="#interests"    class="hover:text-white link-underline">Interests</a></li>
-      <li><a href="#contact"      class="hover:text-white link-underline">Contact</a></li>
+    <ul class="hidden md:flex items-center gap-6 text-sm text-muted">
+      <li><a href="#about" class="hover:text-white">About</a></li>
+      <li><a href="#projects" class="hover:text-white">Projects</a></li>
+      <li><a href="#contact" class="hover:text-white">Contact</a></li>
     </ul>
-    <div class="flex items-center gap-2">
-      <button id="editBtn" class="text-xs px-3 py-1.5 rounded-md border border-line text-muted hover:text-white">Edit Mode</button>
-    </div>
+    <button id="lockBtn" class="text-xs px-3 py-1.5 rounded-md border border-line text-muted hover:text-white">Admin Login</button>
   </nav>
 </header>
 
-<!-- HERO -->
-<section id="top" class="relative overflow-hidden">
-  <div class="absolute inset-0 grid-bg pointer-events-none"></div>
-  <div class="relative max-w-6xl mx-auto px-6 pt-20 pb-24 md:pt-28 md:pb-32">
-    <div class="flex flex-col md:flex-row md:items-center gap-10">
-      <div id="profilePhotoWrap" class="relative shrink-0">
-        <div id="profilePhoto" class="w-36 h-36 md:w-44 md:h-44 rounded-full bg-gradient-to-br from-accent/60 to-accent2/40 border-2 border-white/10 shadow-2xl overflow-hidden flex items-center justify-center text-5xl font-bold text-white/80">
-          <span id="profilePhotoInitial">S</span>
-        </div>
-        <button id="editProfileBtn" class="hidden absolute -bottom-2 -right-2 w-10 h-10 rounded-full bg-white text-ink shadow-lg flex items-center justify-center hover:scale-105 transition">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 113 3L7 19l-4 1 1-4 12.5-12.5z"/></svg>
-        </button>
-      </div>
-      <div class="flex-1 min-w-0">
-        <div id="heroBadge" class="inline-flex items-center gap-2 text-xs font-mono tracking-wide text-muted chip rounded-full px-3 py-1 mb-6">
-          <span class="dot w-2 h-2 rounded-full bg-accent2 inline-block"></span> <span id="heroBadgeText">Open to full-time opportunities · 2026</span>
-        </div>
-        <h1 id="heroHeadline" class="text-4xl md:text-6xl font-extrabold leading-[1.05] tracking-tight gradient-text">
-          Computer Science student
-        </h1>
-        <p id="heroBio" class="mt-6 max-w-2xl text-base md:text-lg text-muted leading-relaxed">
-          Hi, I'm Santosh — a final-year CS student looking for an entry-level Software Engineer / Web Developer role.
-        </p>
-        <div class="mt-8 flex flex-wrap gap-3 items-center">
-          <a id="heroCta1" href="#projects" class="px-5 py-3 rounded-lg bg-gradient-to-r from-accent to-accent2 text-ink font-semibold">View my work</a>
-          <a id="heroCta2" href="#contact" class="px-5 py-3 rounded-lg glass hover:border-white/20">Get in touch</a>
-        </div>
+<main class="max-w-6xl mx-auto px-6 py-20">
+  <section id="top" class="mb-20">
+    <div class="flex flex-col md:flex-row items-center gap-10">
+      <div id="profilePhoto" class="w-36 h-36 rounded-full bg-accent/20 border-2 border-white/10 flex items-center justify-center text-5xl font-bold">S</div>
+      <div>
+        <div id="heroBadge" class="text-xs font-mono text-muted chip rounded-full px-3 py-1 mb-6 inline-block border border-line">Open to opportunities · 2026</div>
+        <h1 id="heroHeadline" class="text-6xl font-extrabold gradient-text">Computer Science student</h1>
+        <p id="heroBio" class="mt-6 text-lg text-muted">Loading...</p>
       </div>
     </div>
-  </div>
-</section>
+  </section>
 
-<!-- SECTIONS -->
-<main class="max-w-6xl mx-auto px-6">
-  <section id="about"        class="py-20 border-t border-line/60" data-section="about"        data-title="About Me"     data-num="01"></section>
-  <section id="education"    class="py-20 border-t border-line/60" data-section="education"    data-title="Education"    data-num="02"></section>
-  <section id="work"         class="py-20 border-t border-line/60" data-section="work"         data-title="Work"         data-num="03"></section>
-  <section id="projects"     class="py-20 border-t border-line/60" data-section="projects"     data-title="Projects"     data-num="04"></section>
-  <section id="certificates" class="py-20 border-t border-line/60" data-section="certificates" data-title="Certificates" data-num="05"></section>
-  <section id="skills"       class="py-20 border-t border-line/60" data-section="skills"       data-title="Skills"       data-num="06"></section>
-  <section id="hobbies"      class="py-20 border-t border-line/60" data-section="hobbies"      data-title="Hobbies"      data-num="07"></section>
-  <section id="interests"    class="py-20 border-t border-line/60" data-section="interests"    data-title="Interests"    data-num="08"></section>
-  <section id="contact"      class="py-20 border-t border-line/60" data-section="contact"      data-title="Contact"      data-num="09"></section>
+  <section id="about" class="py-10 border-t border-line/60" data-section="about"></section>
+  <section id="projects" class="py-10 border-t border-line/60" data-section="projects"></section>
+  <section id="contact" class="py-10 border-t border-line/60" data-section="contact"></section>
 </main>
 
-<footer class="border-t border-line/60 mt-10">
-  <div class="max-w-6xl mx-auto px-6 py-8 flex flex-wrap items-center justify-between gap-4 text-sm text-muted">
-    <p>&copy; <span id="year"></span> <span id="footerName">Santosha Dabadi Aiyyanna</span>.</p>
-    <div class="flex items-center gap-4 text-xs">
-      <button id="exportBtn" class="hover:text-white bg-panel px-3 py-1.5 rounded border border-line">Export Backup JSON</button>
-    </div>
-  </div>
-</footer>
+<script>
+/* CLOUD DATABASE CONFIGURATION */
+const SUPABASE_URL = "https://eaaavmyeqrrdyftzulbk.supabase.co";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVhYWF2bXllcXJyZHlmdHp1bGJrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIxMjY5NDgsImV4cCI6MjA5NzcwMjk0OH0.Db9kj3_jL6l81_SeI7WakAJs1AercwtxIOPsufIcXcE";
 
-<!-- Profile Modal -->
-<div id="profileModal" class="modal-backdrop fixed inset-0 bg-black/70 backdrop-blur-md hidden flex items-center justify-center z-50 p-4">
-  <div class="modal-card bg-panel border border-line rounded-xl p-6 w-full max-w-xl max-h-[90vh] overflow-y-auto">
-    <h3 class="text-lg font-semibold mb-4">Edit Profile</h3>
-    <div class="space-y-4">
-      <div>
-        <label class="block text-xs text-muted mb-1">Name</label>
-        <input id="pfName" class="w-full bg-ink border border-line rounded px-3 py-2 text-sm" />
-      </div>
-      <div>
-        <label class="block text-xs text-muted mb-1">Status Badge</label>
-        <input id="pfBadge" class="w-full bg-ink border border-line rounded px-3 py-2 text-sm" />
-      </div>
-      <div>
-        <label class="block text-xs text-muted mb-1">Headline</label>
-        <input id="pfHeadline" class="w-full bg-ink border border-line rounded px-3 py-2 text-sm" />
-      </div>
-      <div>
-        <label class="block text-xs text-muted mb-1">Bio Summary</label>
-        <textarea id="pfBio" rows="3" class="w-full bg-ink border border-line rounded px-3 py-2 text-sm"></textarea>
-      </div>
-    </div>
-    <div class="flex justify-end gap-2 mt-6">
-      <button onclick="closeModal('profileModal')" class="text-sm px-4 py-2 text-muted hover:text-white">Cancel</button>
-      <button id="profileSave" class="text-sm px-4 py-2 bg-accent rounded text-white font-semibold">Save Changes</button>
-    </div>
-  </div>
-</div>
+const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const SECRET_HASH = "240d1dfb47e2b834e56598c2ca893b8f192b347b7a695b28da35cd58db31b349";
 
-<!-- Item Modal -->
-<div id="itemModal" class="modal-backdrop fixed inset-0 bg-black/70 backdrop-blur-md hidden flex items-center justify-center z-50 p-4">
-  <div class="modal-card bg-panel border border-line rounded-xl p-6 w-full max-w-xl">
-    <h3 class="text-lg font-semibold mb-4" id="itemModalTitle">Manage Item</h3>
-    <input type="hidden" id="itemId" />
-    <input type="hidden" id="itemSection" />
-    <div class="space-y-4">
-      <div>
-        <label class="block text-xs text-muted mb-1">Title</label>
-        <input id="itemTitle" class="w-full bg-ink border border-line rounded px-3 py-2 text-sm" />
-      </div>
-      <div>
-        <label class="block text-xs text-muted mb-1">Subtitle / Meta</label>
-        <input id="itemSubtitle" class="w-full bg-ink border border-line rounded px-3 py-2 text-sm" />
-      </div>
-      <div>
-        <label class="block text-xs text-muted mb-1">Description Content</label>
-        <textarea id="itemBody" rows="4" class="w-full bg-ink border border-line rounded px-3 py-2 text-sm"></textarea>
-      </div>
-    </div>
-    <div class="flex justify-between items-center mt-6">
-      <button id="itemDelete" class="text-sm text-red-400 hover:text-red-300 hidden">Delete Item</button>
-      <div class="flex gap-2 ml-auto">
-        <button onclick="closeModal('itemModal')" class="text-sm px-4 py-2 text-muted hover:text-white">Cancel</button>
-        <button id="itemSave" class="text-sm px-4 py-2 bg-white text-ink font-semibold rounded">Save</button>
-      </div>
-    </div>
-  </div>
-</div>
+let state = { items: [], editMode: false, profile: {} };
 
-<script id="page-script">
-const STORAGE_KEY = 'portfolio_data_v2';
-const PROFILE_KEY = 'portfolio_profile_v2';
-
-/* Seed data containing the parsed JSON updates */
-const DEFAULT_PROFILE = {
-  name: "Santosha Dabadi Aiyyanna",
-  badge: "Open to full-time opportunities · 2026",
-  headline: "Computer Science student",
-  bio: "Hi, I'm Santosh — a final-year CS student looking for an entry-level Software Engineer / Web Developer role.",
-  cta1Text: "View my work", cta1Href: "#projects",
-  cta2Text: "Get in touch", cta2Href: "#contact",
-  photo: { data: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAABDgAAAJfCAYAAACaMWZXAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsQAAA7EAZUrDhsAAAA2ZVhJZk1NKgAAAAAYAAAASAAAAAEAAABIAAAAAQACARoABQAAAAEAAAAIARsABQAAAAEAAAAQAAAAAGw3JSoAAAAJb0ZGcwAAAAAAAAAAANoqts4AAAAgdEVYdEZpbGUARDpcRG93bmxvYWRzXHVudGl0bGVkLmJsZW5kM1tAzwAAABh0RVh0RGF0ZQAyMDI0LzAxLzE0IDEwOjU3OjI2Dhc8RAAAABB0RVh0VGltZQAwMDowMDowMDowMezDJsIAAAAJdEVYdEZyYW1lADAwMcFRFSIAAAANdEVYdENhbWVyYQBDYW1lcmFo/+/pAAAAC3RFWHRTY2VuZQBTY2VuZeUhXZYAAAATdEVYdFJlbmRlclRpbWUAMDA6MzAuMjGipnaFAAAANmVYSWZNTSoAAAAAGAAAAEgAAAABAAAASAAAAAEAAgEaAAUAAAABAAAACAEbAAUAAAABAAAAEAAAAABsNyUqAAD+PElEQVR4Xuz9CbBs13WeCW7gYXyYQczgAA4gABIkJVIURZESZ0mULEuWZcmDLNlVtsvtqOiyu8vRVRXRER1VLpe7qrvs9lAu2+GQy9Zgl2fLkjWSEkVRnEmQ4DxgIAZiBh7wMA99/vOwoMWFNe6zT2be++4HJs85e/3rX2vvczJvZr68eU9orT0z3UxOOOGE9swzxyS0z8ckXqwH+AGvHtD6yvai5QGvphbjeaSRW8Lz0MY9rBqcHl9Jb51sbeiApuUemfpZDZC6TK7cB15sJPAGmr9Wl8Z4XrU/qa/mL0HrP0JqtX4zY9GxJIpHWPm9dbPjOAY0RnGus7w0ZB6wvGU8Qnpr+xG8djZHQ8vHGNDGrTEe03SEjHnaNYnqIg40DeUumQvXLvHRoPzefsCS3IiMfkk/BOVkvSx9RFUv8fKXehPcR+6DETU0In8tzvvzyOosKD/qkVOtqemzdbO1uJ+mpzogqkVar65Wx6rdi+Unx0fX9Yhqa71gDHg98jzNw4K0Vt2sDwd5oCc3oqenaG7WPqdat6LXtLIngOMe30PT/v/r2NBuUpnUUmgxOdpYBS+/6l3R99alWKZWpR/JktxN09PrptaGtNtYT632NvoYzZI5ZHMrNaCVD/i7Bu+L95tl5Lykl+ytwsi+iDXnejwyag02da6rdTZxjr0aVmzbfS0h8qW4p0Ns6XNT7h/1ZJHNq/h7Wi3W2/tStlWX6K2fyct67/IabKI3WWNETcuDj/fWGdFflW3XpH25Jdbqr/sNjqghLd4zibUmTkh/HFd7z/aY1VXYZu0RVPpaew7b6EXzkWPVWqN6A57XyDprMqrPNecL702u5yZqVWpscu6cbN1It63+NTbdy6g13CXQ68h+15p71TfSa3EaW2sOHF4D+94bCJvop5elvW1yblQL2966Mi867sXzxf6oOj1Ua4/utdfPy9NiGFva+9J8To/XyPpVetevN8+CvCxPPp6pK/X8sTuTD7K6LHBb9ha0Ap+cnChhjW+abB8j+h0954rfktqj+x7FNvva1TXx6Ol5L87zgDx0fjd5nnf5msr0pml2YU49PUQ5FPd025r7krrb7nlX12xbfR2wN7Gul21cRwfX7lhGrafmc3CuxtG7lrt4Dkb3dCIMcavA9dlcqaNJ0Di2lpdXg8e411Kkh+zXwopj3DpxlBN5W2h50jO6aLiH1Ud2HMeaVtOtheVN41FtHu/tM5sndVqe1U+2BljywFGpA6w5WD7VcUlWR3C9tW8BTbVeFvLt9a/kQUvXBLbZXE0nxzwvqxYfy9TQII21BZoPjXn3EU/Dx6DTakR4OVqMxnhMG7OQeVoOnStvXSiWqUmQVm41Mr5SY+VkvCLgwX0ynpW6pJVbDU2j6TGGm7xOJV5c03MozrdaTnaM8GIVtH6q3lyv5Wo1gFdHxjwtUdFwrZWX8SO41npc8B4vKn1JPJ1VM+tdYWm/mfxII+PacaThSL13DiU8z6shIa2Vg3HPT8Y0bWYsm5ehN8+DPLl3VAdxTR/lAS0PyFzNi8a0GAdxqcE1x/P5Pm1pPwK6jXwHBwppdxY+rmnkROQxh8c8nUeUh7g1D74F2phFRkNwX7oYtJ4iempqVOqTj+aHMa+OhZVj1SBkPKPXNCDjpeHpemOcjEfWC0Cr5fFxD2j4taLlWD4ZrXZs+XE8jeYp51DJ18jk99So1pb73rEHdPTYpEFx2qctz9G20pPvA9JYcK9RaF6yD67Bfqa+zJF+ckwjU8fDy6eYpcE43Tgyj8ctLdBi1vx5THpY47Tl44Q1riF1lp/WO9XxzmvGn+N5Ux7f8n2ZQ7Gl9PrwPMsj4z1qHhrw9s5flsxcI7Q8a4z3LGtrOYSMVbSAj9G+5mnFMvB8TuRVrcX1VLN6LciadCzHJV6tKJejabNjHiP1iPG4pSUdrYuVwzXAy+NY4xHVvEwvFTwPK4Zx3geQxwR5UA4h97VcDZ7noem+5Q0OTZA1J7i+mqvhechYtl6ky9SsekTHIDsWQTnYyvwePwt4yYvU8q9oPXiO5qlBOVn9rsH7H03Fk2t5T9qaSl+uk7EKWq5Wi1hSSyPj52l6Y9tgaT9L5woNrhnaWkRemVoWPbk8J+qdsHKy+ZLevAje52ikNx1rc+FauV+dN88ntLEKlC+3WXrzRoCa2nrzsagvL04xudWQseiY8Dw1SJ/1w3G2hqfLeki0PD6G/eh+QPreHjLIniwy/RKZfrNzsnSVfoClj/rI9klU9RmWemr5nmdvPcrDVq419/R0wBr34P4RWi9AenixXjRPbDP+0Ky5LiDSV/0i1E9wZBdjTaT/iJ4Qx807iTKeqSuxakiv6LgXz2dJjUzuqDlYrO0PRtcY4QcPeU1ZvtV6XO/lyh7ksUemhlc7YkluBTmPqK6Mj+gz67G0lpU/Yg77mcz6eGubvU/tF5ZeT5RPa+et7SagPmjfYnQ/8Ft7jiP8I49KDanN5vbkVfrqZRM1JNWavWvVU6e3lkZP/U1BtUbUHNm357WtXkfOb79Aa7LJtUGtNZ+rZOZiaZ5bj+m2b55NZRd8Eydmif+a/a099wPW4eC87SY4L2CT52ZTjy/79Zbe167vG577Zzu12vwgAN25do+uI8d0MPo6wZ+wPOs1hzZ4y7fT6i3Tfe4q2tCfZ347PEQYEpY+1kyOaShLS10lGudkCV98txsHxbIj3K1uhItps0906elkeMZL5DVeUS1rRo0nukh0vC41Gb8CU3Lx0aeNz4WefTWqJL1GN07kLqqLz832ZoekYd2LYDRtTOPQxyupX0t3/Os6kEUBxmNRyXfOj+99M5Pjnk+ViyT42k4o3Uj0WpirKdnmePFONlaHpbHCG8O+ckth4/JuKYfyUj/JV7ZedO43AIrp0LFw9Jmx3v7RV42N6MjjabN1qkyqqantWp0/p_new_photo_data_here" }
-};
-
-const SEED = {
-  about: [
-    { title: "Who I Am", subtitle: "Developer & Systems Engineer", body: "I'm a final-year CS student who fell in love with programming after building my first website in high school. I care about clean code, clear communication, and shipping things that solve real problems." }
-  ],
-  education: [
-    { title: "Bachelor of Engineering (B.E.)", subtitle: "Visvesvaraya Technological University (VTU) · 2024 – 2027", body: "Rigorous engineering foundation specializing in computing methodologies, technical logic design, structural planning, and advanced numerical analysis templates." }
-  ],
-  work: [
-    { title: "Office Admin", subtitle: "IT Consultancy · 2021-2024", body: "Worked as Office Admin, System Admin and Technical Support specialist." }
-  ],
-  projects: [
-    { title: "Online Shopping website", subtitle: "Html, CSS, JS", body: "Realtime online shopping storefront system." },
-    { title: "Automatic fire extinguisher vehicle", subtitle: "Arduino Uno & Components", body: "Autonomous flame detection and local extinguisher deployment drone." }
-  ],
-  certificates: [
-    { title: "Full-Stack Web Development", subtitle: "Coursera · 2024", body: "Specialization covering React, Node and deployment." }
-  ],
-  skills: [
-    { title: "Languages & Core Frameworks", body: "Python, JavaScript, FastAPI, React, SQL, HTML5/CSS3" },
-    { title: "Data Processing & Embedded Labs", body: "Pandas analytics pipelines, structural routing directories, Arduino IDE, hardware pin mapping interfaces" },
-    { title: "Network Security & Architecture Layers", body: "Ethereum network structural vulnerability patterns, Decentralized DNS verification security models, structural flight classification parameters" }
-  ],
-  hobbies: [
-    { title: "Culinary Engineering", subtitle: "Traditional Multi-Tiered Methods", body: "Applying structured process engineering timelines to traditional multi-tiered assembly preparations (e.g., precise 6-serving batch configurations)." }
-  ],
-  interests: [
-    { title: "Unmanned Aerial Systems (UAV)", body: "Analyzing multi-tier flight configurations, computational aerodynamics, and specialized civilian mission parameters." },
-    { title: "High-Resolution Visual Media Pipelines", body: "Configuring algorithmic styles, high-fidelity upscale architectures, and background processing matrix manipulation." },
-    { title: "Strategic Network Analysis & Sports Data", body: "Tracking systemic mathematical trends, playoff qualifying pathways, and historical player performance tracking metrics." }
-  ],
-  contact: [
-    { title: "Technical Inbox", subtitle: "contact@example.com", body: "Monitored daily for engineering queries." },
-    { title: "Network Handles", subtitle: "github.com/engineering-handle", body: "Hosting open architecture models and codebases." }
-  ]
-};
-
-let state = { items: [], editMode: false, profile: { ...DEFAULT_PROFILE } };
-
-const $ = (s, r=document) => r.querySelector(s);
-const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
-const esc = (s) => (s == null ? '' : String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])));
-
-function load() {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (raw) state.items = JSON.parse(raw);
-    else { seed(); }
-  } catch { seed(); }
-  try {
-    const p = localStorage.getItem(PROFILE_KEY);
-    if (p) state.profile = { ...DEFAULT_PROFILE, ...JSON.parse(p) };
-  } catch {}
-}
-
-function save() { localStorage.setItem(STORAGE_KEY, JSON.stringify(state.items)); }
-function saveProfile() { localStorage.setItem(PROFILE_KEY, JSON.stringify(state.profile)); }
-
-function seed() {
-  let id = 1;
-  state.items = [];
-  for (const sec of SECTIONS) {
-    (SEED[sec] || []).forEach((it, idx) => {
-      state.items.push({ id: id++, section: sec, order: idx, file: null, ...it });
-    });
+const $ = (s) => document.querySelector(s);
+async function syncFromCloud() {
+  const { data: profile } = await supabase.from('profile_data').select('*').eq('id', 'main_user').single();
+  if (profile) {
+    state.profile = profile;
+    $('#brandName').textContent = profile.name;
+    $('#heroHeadline').textContent = profile.headline;
+    $('#heroBio').textContent = profile.bio;
   }
-  save();
-}
-
-function applyProfile() {
-  const p = state.profile;
-  $('#brandName').textContent = p.name || 'Portfolio';
-  $('#footerName').textContent = p.name || 'Portfolio';
-  $('#heroBadgeText').textContent = p.badge || '';
-  const lines = (p.headline || '').split(/\\n|\n/);
-  $('#heroHeadline').innerHTML = lines.map(esc).join('<br/>');
-  $('#heroBio').textContent = p.bio || '';
-  $('#heroCta1').textContent = p.cta1Text || ''; $('#heroCta1').href = p.cta1Href || '#';
-  $('#heroCta2').textContent = p.cta2Text || ''; $('#heroCta2').href = p.cta2Href || '#';
-  
-  const initial = (p.name || 'S').trim().charAt(0).toUpperCase() || 'S';
-  const brand = $('#brandAvatar');
-  const photo = $('#profilePhoto');
-  if (p.photo && p.photo.data) {
-    photo.innerHTML = `<img src="${p.photo.data}" alt="" style="width:100%;height:100%;object-fit:cover;display:block;">`;
-    brand.innerHTML = `<img src="${p.photo.data}" alt="" style="width:100%;height:100%;object-fit:cover;display:block;">`;
-  } else {
-    photo.innerHTML = `<span id="profilePhotoInitial">${initial}</span>`;
-    brand.textContent = initial;
-  }
-}
-
-function renderItemCard(item) {
-  const adminBtns = state.editMode ? `
-    <div class="item-actions absolute top-2 right-2 flex gap-1 z-10">
-      <button class="btn-icon bg-ink/80 p-1 rounded border border-line" data-edit="${item.id}" title="Edit"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 113 3L7 19l-4 1 1-4 12.5-12.5z"/></svg></button>
-      <button class="btn-icon danger bg-ink/80 p-1 rounded border border-line text-red-400" data-del="${item.id}" title="Delete"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6"/></svg></button>
-    </div>` : '';
-  return `
-    <article class="glass rounded-2xl p-6 card-hover relative flex flex-col justify-between">
-      <div>
-        <h3 class="text-lg font-semibold flex items-center flex-wrap gap-y-1"><span>${esc(item.title)}</span></h3>
-        ${item.subtitle ? `<p class="text-sm text-accent mt-1">${esc(item.subtitle)}</p>` : ''}
-        ${item.body ? `<p class="mt-3 text-sm text-muted leading-relaxed whitespace-pre-wrap">${esc(item.body)}</p>` : ''}
-      </div>
-      ${adminBtns}
-    </article>`;
+  const { data: items } = await supabase.from('portfolio_items').select('*');
+  if (items) { state.items = items; render(); }
 }
 
 function render() {
   document.body.classList.toggle('edit-mode', state.editMode);
-  $('#editBtn').textContent = state.editMode ? 'Exit Edit Mode' : 'Edit Mode';
-  $('#editProfileBtn').classList.toggle('hidden', !state.editMode);
-  
-  $$('main section[data-section]').forEach(sec => {
-    const key = sec.dataset.section;
-    const items = state.items.filter(i => i.section === key).sort((a,b) => (a.order||0) - (b.order||0));
-    const addBtn = state.editMode ? `<button class="btn-add" data-add="${key}">+ Add Item</button>` : '';
-    sec.innerHTML = `
-      <div class="flex items-end justify-between flex-wrap gap-4 mb-8">
-        <div>
-          <p class="text-xs font-mono text-accent2 tracking-widest">${sec.dataset.num} / ${sec.dataset.title.toUpperCase()}</p>
-          <h2 class="mt-2 text-3xl font-bold">${esc(sec.dataset.title)}</h2>
-        </div>
-        ${addBtn}
-      </div>
-      <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
-        ${items.length ? items.map(renderItemCard).join('') : `<p class="text-sm text-muted col-span-full italic">Coming soon.</p>`}
-      </div>`;
+  // Simple auto-render loop for sections
+  ['about', 'projects', 'contact'].forEach(sec => {
+    const items = state.items.filter(i => i.section === sec);
+    $(`#${sec}`).innerHTML = `<h2 class="text-3xl font-bold mb-6">${sec.toUpperCase()}</h2>` + 
+      items.map(i => `<div class="glass p-5 rounded-xl mb-4">${i.title}<p class="text-muted text-sm">${i.body}</p></div>`).join('');
   });
 }
 
-function openModal(id) { $('#' + id).classList.remove('hidden'); }
-function closeModal(id) { $('#' + id).classList.add('hidden'); }
-
-$('#editBtn').addEventListener('click', () => { state.editMode = !state.editMode; render(); });
-
-$('#editProfileBtn').addEventListener('click', () => {
-  const p = state.profile;
-  $('#pfName').value = p.name || '';
-  $('#pfBadge').value = p.badge || '';
-  $('#pfHeadline').value = p.headline || '';
-  $('#pfBio').value = p.bio || '';
-  openModal('profileModal');
-});
-
-$('#profileSave').addEventListener('click', () => {
-  state.profile.name = $('#pfName').value.trim();
-  state.profile.badge = $('#pfBadge').value.trim();
-  state.profile.headline = $('#pfHeadline').value.trim();
-  state.profile.bio = $('#pfBio').value.trim();
-  saveProfile();
-  applyProfile();
-  closeModal('profileModal');
-  render();
-});
-
-document.addEventListener('click', (e) => {
-  const add = e.target.closest('[data-add]');
-  if (add) {
-    $('#itemId').value = '';
-    $('#itemSection').value = add.dataset.add;
-    $('#itemTitle').value = '';
-    $('#itemSubtitle').value = '';
-    $('#itemBody').value = '';
-    $('#itemDelete').classList.add('hidden');
-    openModal('itemModal');
-    return;
-  }
-  const ed = e.target.closest('[data-edit]');
-  if (ed) {
-    const item = state.items.find(i => i.id == ed.dataset.edit);
-    if (item) {
-      $('#itemId').value = item.id;
-      $('#itemSection').value = item.section;
-      $('#itemTitle').value = item.title;
-      $('#itemSubtitle').value = item.subtitle || '';
-      $('#itemBody').value = item.body || '';
-      $('#itemDelete').classList.remove('hidden');
-      openModal('itemModal');
-    }
-    return;
-  }
-  const del = e.target.closest('[data-del]');
-  if (del) {
-    if (confirm('Delete this item?')) {
-      state.items = state.items.filter(i => i.id != del.dataset.del);
-      save();
-      render();
-    }
+$('#lockBtn').addEventListener('click', async () => {
+  if (state.editMode) { state.editMode = false; render(); }
+  else {
+    const pass = prompt("Enter Admin Password:");
+    const encoder = new TextEncoder();
+    const data = await crypto.subtle.digest('SHA-256', encoder.encode(pass));
+    const hash = Array.from(new Uint8Array(data)).map(b => b.toString(16).padStart(2, '0')).join('');
+    if (hash === SECRET_HASH) { state.editMode = true; render(); }
   }
 });
 
-$('#itemSave').addEventListener('click', () => {
-  const title = $('#itemTitle').value.trim();
-  if (!title) return;
-  const id = $('#itemId').value;
-  const section = $('#itemSection').value;
-  
-  if (id) {
-    const idx = state.items.findIndex(i => i.id == id);
-    if (idx >= 0) {
-      state.items[idx].title = title;
-      state.items[idx].subtitle = $('#itemSubtitle').value.trim();
-      state.items[idx].body = $('#itemBody').value.trim();
-    }
-  } else {
-    const nextId = (state.items.reduce((m, x) => Math.max(m, x.id), 0) || 0) + 1;
-    state.items.push({
-      id: nextId,
-      section: section,
-      title: title,
-      subtitle: $('#itemSubtitle').value.trim(),
-      body: $('#itemBody').value.trim(),
-      order: state.items.filter(i => i.section === section).length
-    });
-  }
-  save();
-  closeModal('itemModal');
-  render();
-});
-
-$('#itemDelete').addEventListener('click', () => {
-  const id = $('#itemId').value;
-  if (id && confirm('Delete this item?')) {
-    state.items = state.items.filter(i => i.id != id);
-    save();
-    closeModal('itemModal');
-    render();
-  }
-});
-
-$('#exportBtn').addEventListener('click', () => {
-  const blob = new Blob([JSON.stringify({ profile: state.profile, items: state.items }, null, 2)], { type: 'application/json' });
-  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'portfolio-data.json'; a.click();
-});
-
-document.getElementById('year').textContent = new Date().getFullYear();
-load(); applyProfile(); render();
+syncFromCloud();
 </script>
 </body>
 </html>
